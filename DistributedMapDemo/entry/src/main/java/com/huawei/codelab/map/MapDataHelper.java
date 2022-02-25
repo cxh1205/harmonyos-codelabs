@@ -26,6 +26,7 @@ import com.huawei.codelab.util.MapUtils;
 import com.dongyu.tinymap.Element;
 import com.dongyu.tinymap.TinyMap;
 
+import ohos.agp.components.TextField;
 import ohos.agp.utils.Point;
 import ohos.app.Context;
 
@@ -39,11 +40,11 @@ import java.util.List;
 public class MapDataHelper {
     private static final String TAG = MapDataHelper.class.getName();
 
+    private final TinyMap tinyMap;
+
+    private final Context context;
+
     private String location;
-
-    private TinyMap tinyMap;
-
-    private Context context;
 
     private DataCallBack dataCallBack;
 
@@ -75,27 +76,33 @@ public class MapDataHelper {
 
     /**
      * 获取本机位置信息
+     *
+     * @param startLocationText start location Component
      */
-    public void getMyLocation() {
+    public void getMyLocation(TextField startLocationText) {
         new LocationHelper().getMyLocation(context, loc -> {
             double locLongitude = loc.getLongitude();
             double locLatitude = loc.getLatitude();
             location = locLongitude + "," + locLatitude;
             if (tinyMap.getMapElements() == null) {
                 setMapCenter(locLongitude, locLatitude);
-                getRegionDetail();
+                getRegionDetail(startLocationText);
             }
         });
     }
 
     /**
      * 调用高德地图逆地理编码api，获取城市编码
+     *
+     * @param startLocationText start location Component
      */
-    private void getRegionDetail() {
+    private void getRegionDetail(TextField startLocationText) {
         String url = String.format(Const.REGION_DETAIL_URL, location, Const.MAP_KEY);
         HttpUtils.getInstance(context).get(url, result -> {
             RegionDetailResult regionDetailResult = GsonUtils.jsonToBean(result, RegionDetailResult.class);
             localCityCode = regionDetailResult.getRegeocode().getAddressComponent().getCitycode();
+            startLocationText.setText("我的位置");
+            LogUtils.info(TAG, "localCityCode:" + localCityCode);
         });
     }
 
@@ -123,7 +130,17 @@ public class MapDataHelper {
      */
     public void getRouteResult(String endLocation) {
         String url = String.format(Const.ROUTE_URL, location, endLocation, Const.MAP_KEY);
-        HttpUtils.getInstance(context).get(url, result -> dataCallBack.setRouteView(result));
+        HttpUtils.getInstance(context).get(url, result -> {
+            if (tinyMap.getMapElements() != null) {
+                tinyMap.setStepPoint(0);
+                tinyMap.getMapElements().clear();
+                parseRoute(result);
+            }
+
+            if (tinyMap.getMapElements() != null && tinyMap.getMapElements().size() > 1) {
+                dataCallBack.setBottomView();
+            }
+        });
     }
 
     /**
@@ -132,42 +149,45 @@ public class MapDataHelper {
      * @param result 高德地图路径规划api返回的结果
      */
     public void parseRoute(String result) {
-        tinyMap.getMapElements().clear();
-        RouteResult routeResult = GsonUtils.jsonToBean(result, RouteResult.class);
-        List<RouteResult.RouteEntity.PathsEntity> paths = routeResult.getRoute().getPaths();
-        RouteResult.RouteEntity.PathsEntity pathsEntity = paths.get(0);
-        List<RouteResult.RouteEntity.PathsEntity.StepsEntity> steps = pathsEntity.getSteps();
-        for (int i = 0; i < steps.size(); i++) {
-            RouteResult.RouteEntity.PathsEntity.StepsEntity stepsEntity = steps.get(i);
-            Object action = stepsEntity.getAction();
-            String instruction = stepsEntity.getInstruction();
-            String polyLine = stepsEntity.getPolyline();
-            String[] points = polyLine.split(";");
-            for (int j = 0; j < points.length; j++) {
-                String[] pointCoordinates = points[j].split(",");
-                double[] coordinates = MapUtils.lonLat2Mercator(Double.parseDouble(pointCoordinates[0]),
-                    Double.parseDouble(pointCoordinates[1]));
+        try {
+            RouteResult routeResult = GsonUtils.jsonToBean(result, RouteResult.class);
+            List<RouteResult.RouteEntity.PathsEntity> paths = routeResult.getRoute().getPaths();
+            RouteResult.RouteEntity.PathsEntity pathsEntity = paths.get(0);
+            List<RouteResult.RouteEntity.PathsEntity.StepsEntity> steps = pathsEntity.getSteps();
+            for (int i = 0; i < steps.size(); i++) {
+                RouteResult.RouteEntity.PathsEntity.StepsEntity stepsEntity = steps.get(i);
+                Object action = stepsEntity.getAction();
+                String instruction = stepsEntity.getInstruction();
+                String polyLine = stepsEntity.getPolyline();
+                String[] points = polyLine.split(";");
+                for (int j = 0; j < points.length; j++) {
+                    String[] pointCoordinates = points[j].split(",");
+                    double[] coordinates = MapUtils.lonLat2Mercator(Double.parseDouble(pointCoordinates[0]),
+                            Double.parseDouble(pointCoordinates[1]));
 
-                if (i == 0 && j == 0) {
-                    // 添加定位图标元素
-                    addElementToMap(coordinates, Const.ROUTE_PEOPLE, "", true);
+                    if (i == 0 && j == 0) {
+                        // 添加定位图标元素
+                        addElementToMap(coordinates, Const.ROUTE_PEOPLE, "", true);
 
-                    // 添加起点位置元素
-                    addElementToMap(coordinates, Const.ROUTE_START, "", true);
-                }
+                        // 添加起点位置元素
+                        addElementToMap(coordinates, Const.ROUTE_START, "", true);
+                    }
 
-                if (j == 0) {
-                    // 添加每一个step第一个元素，用于显示导航时提示信息
-                    addElementToMap(coordinates, action.toString(), action.toString(), false);
-                } else {
-                    addElementToMap(coordinates, action.toString(), instruction, false);
-                }
+                    if (j == 0) {
+                        // 添加每一个step第一个元素，用于显示导航时提示信息
+                        addElementToMap(coordinates, action.toString(), action.toString(), false);
+                    } else {
+                        addElementToMap(coordinates, action.toString(), instruction, false);
+                    }
 
-                // 添加终点位置元素
-                if (i == steps.size() - 1 && j == points.length - 1) {
-                    addElementToMap(coordinates, Const.ROUTE_END, "到达终点", true);
+                    // 添加终点位置元素
+                    if (i == steps.size() - 1 && j == points.length - 1) {
+                        addElementToMap(coordinates, Const.ROUTE_END, "到达终点", true);
+                    }
                 }
             }
+        }catch (Exception exception){
+            LogUtils.info(TAG,"parse route exception");
         }
     }
 
@@ -207,10 +227,8 @@ public class MapDataHelper {
         void setInputTipsView(List<InputTipsResult.TipsEntity> tips);
 
         /**
-         * 设置导航路径视图
-         *
-         * @param route route
+         * 设置底部视图
          */
-        void setRouteView(String route);
+        void setBottomView();
     }
 }

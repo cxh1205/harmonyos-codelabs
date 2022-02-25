@@ -34,9 +34,9 @@ import java.util.Optional;
  * @since 2021-03-12
  */
 public class InputTipsProvider extends BaseItemProvider {
-    private List<InputTipsResult.TipsEntity> list;
+    private final List<InputTipsResult.TipsEntity> list;
 
-    private Context context;
+    private final Context context;
 
     /**
      * InputTipsProvider
@@ -72,12 +72,10 @@ public class InputTipsProvider extends BaseItemProvider {
         if (component == null) {
             component = LayoutScatter.getInstance(context).parse(ResourceTable.Layout_item_input_tips, null, false);
             viewHolder = new ViewHolder();
-            if (component.findComponentById(ResourceTable.Id_tips_name) instanceof Text) {
-                viewHolder.tipsName = (Text) component.findComponentById(ResourceTable.Id_tips_name);
-            }
-            if (component.findComponentById(ResourceTable.Id_tips_detail) instanceof Text) {
-                viewHolder.tipsDetail = (Text) component.findComponentById(ResourceTable.Id_tips_detail);
-            }
+
+            viewHolder.tipsName = (Text) component.findComponentById(ResourceTable.Id_tips_name);
+            viewHolder.tipsDetail = (Text) component.findComponentById(ResourceTable.Id_tips_detail);
+
             component.setTag(viewHolder);
         } else {
             if (component.getTag() instanceof ViewHolder) {

@@ -38,6 +38,7 @@ import ohos.eventhandler.InnerEvent;
 import ohos.rpc.IRemoteObject;
 import ohos.rpc.RemoteException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -50,17 +51,17 @@ public class MapManager {
 
     private static final int STEP_DELAY_TIME = 800;
 
-    private IMapIdlInterface proxy;
+    private final TinyMap tinyMap;
 
-    private MapEventHandler mapEventHandler;
+    private final AbilitySlice slice;
+
+    private final MapEventHandler mapEventHandler;
+
+    private IMapIdlInterface proxy;
 
     private int stepPoint = 0;
 
     private Element nextElement;
-
-    private TinyMap tinyMap;
-
-    private AbilitySlice slice;
 
     private NavListener navListener;
 
@@ -69,7 +70,7 @@ public class MapManager {
      *
      * @since 2021-03-12
      */
-    private IAbilityConnection conn = new IAbilityConnection() {
+    private final IAbilityConnection conn = new IAbilityConnection() {
         @Override
         public void onAbilityConnectDone(ElementName element, IRemoteObject remote, int resultCode) {
             LogUtils.info(TAG, "onAbilityConnectDone......");
@@ -88,9 +89,12 @@ public class MapManager {
      *
      * @since 2021-03-12
      */
-    private Runnable task = new Runnable() {
+    private final Runnable task = new Runnable() {
         @Override
         public void run() {
+            if (tinyMap.getMapElements() == null || tinyMap.getMapElements().size() <= 1) {
+                return;
+            }
             // 将定位图标的下一个坐标点的坐标，赋值给当前定位图标
             Element peopleElement = tinyMap.getMapElements().get(0);
             nextElement = tinyMap.getMapElements().get(stepPoint + 1);
@@ -118,7 +122,7 @@ public class MapManager {
      * 构造方法
      *
      * @param tinyMap navMap
-     * @param slice slice
+     * @param slice   slice
      */
     public MapManager(TinyMap tinyMap, AbilitySlice slice) {
         this.tinyMap = tinyMap;
@@ -132,12 +136,17 @@ public class MapManager {
      * @param tips tips
      */
     public static void clearEmptyLocation(List<InputTipsResult.TipsEntity> tips) {
-        for (int i = 0; i < tips.size(); i++) {
-            InputTipsResult.TipsEntity tipsEntity = tips.get(i);
-            if ((tipsEntity.getLocation()).isEmpty()) {
-                tips.remove(tipsEntity);
+
+        List<InputTipsResult.TipsEntity> newList = new ArrayList<>();
+
+        for (InputTipsResult.TipsEntity tipsEntity : tips) {
+            if (tipsEntity.getLocation() != null && !(tipsEntity.getLocation()).isEmpty()) {
+                newList.add(tipsEntity);
             }
         }
+
+        tips.clear();
+        tips.addAll(newList);
     }
 
     public int getStepPoint() {
@@ -173,10 +182,10 @@ public class MapManager {
     private void connectWatchService(String deviceId) {
         Intent intent = new Intent();
         Operation operation = new Intent.OperationBuilder().withDeviceId(deviceId)
-            .withBundleName(slice.getBundleName())
-            .withAbilityName(WatchService.class.getName())
-            .withFlags(Intent.FLAG_ABILITYSLICE_MULTI_DEVICE)
-            .build();
+                .withBundleName(slice.getBundleName())
+                .withAbilityName(WatchService.class.getName())
+                .withFlags(Intent.FLAG_ABILITYSLICE_MULTI_DEVICE)
+                .build();
         intent.setOperation(operation);
         slice.connectAbility(intent, conn);
     }
@@ -238,10 +247,18 @@ public class MapManager {
 
     /**
      * 迁移
+     *
+     * @param deviceId selected deviceId
      */
-    public void translate() {
-        slice.continueAbility();
-        requestRemote(Const.STOP_WATCH_ABILITY, "");
+    public void translate(String deviceId) {
+        try {
+            slice.continueAbility(deviceId);
+            // 关闭WatchAbility
+            requestRemote(Const.STOP_WATCH_ABILITY, "");
+        } catch (Exception exception) {
+            LogUtils.info(TAG, "translate exception");
+        }
+
     }
 
     /**
@@ -260,7 +277,7 @@ public class MapManager {
      */
     public interface NavListener {
         /**
-         * 监听回调
+         * 监听回调，将数据会调给MainAbilitySlice
          *
          * @param element MapElement
          */
@@ -283,13 +300,15 @@ public class MapManager {
             if (event.eventId != 1) {
                 return;
             }
-            LogUtils.info(TAG, "processEvent invalidate");
-            if (nextElement.getActionType() != null && !nextElement.getActionType().isEmpty()) {
+            if (nextElement.getActionType() != null && !nextElement.getActionType().isEmpty()
+                    && !nextElement.getActionContent().equals("[]")) {
+                // 将nextElement回调给MainAbilitySlice
                 navListener.onNavListener(nextElement);
             }
             if (proxy != null) {
+                // 将数据发送给WatchService
                 requestRemote(nextElement.getActionType() == null ? "" : nextElement.getActionType(),
-                    nextElement.getActionContent() == null ? "" : nextElement.getActionContent());
+                        nextElement.getActionContent() == null ? "" : nextElement.getActionContent());
             }
             tinyMap.invalidate();
         }

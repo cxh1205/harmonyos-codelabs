@@ -15,7 +15,6 @@
 
 package com.dongyu.tinymap.util;
 
-import com.dongyu.tinymap.Const;
 import com.dongyu.tinymap.ResourceTable;
 
 import ohos.app.Context;
@@ -103,11 +102,13 @@ public class ImageUtils {
             pixelMap = imageSource.createPixelmap(options);
             return pixelMap;
         } catch (IOException | NotExistException exception) {
+            LogUtils.info(TAG, "getPixelMap:" + exception.getMessage());
         } finally {
             if (drawableInputStream != null) {
                 try {
                     drawableInputStream.close();
                 } catch (IOException e) {
+                    LogUtils.info(TAG, "getPixelMap:" + e.getMessage());
                 }
             }
         }
@@ -133,12 +134,14 @@ public class ImageUtils {
             options.desiredSize = new Size(TILE_LENGTH, TILE_LENGTH);
             pixelMap = source.createPixelmap(options);
             return pixelMap;
-        } catch (IOException exception) {
+        } catch (IOException | NullPointerException exception) {
+            LogUtils.info(TAG, "getImagePixelMap:" + exception.getMessage());
         } finally {
             if (is != null) {
                 try {
                     is.close();
                 } catch (IOException e) {
+                    LogUtils.info(TAG, "getImagePixelMap:" + e.getMessage());
                 }
             }
         }

@@ -31,7 +31,7 @@ import ohos.rpc.RemoteObject;
 public abstract class VideoMigrationStub extends RemoteObject implements ImplVideoMigration {
     private static final String DESCRIPTOR = "com.huawei.codelab.ImplVideoMigration";
     private static final String TAG = "VideoMigrationStub";
-    private static final int COMMAND_FLY_IN = IRemoteObject.MIN_TRANSACTION_ID + 0;
+    private static final int COMMAND_FLY_IN = IRemoteObject.MIN_TRANSACTION_ID;
     private static final int COMMAND_PLAY_CONTROL = IRemoteObject.MIN_TRANSACTION_ID + 1;
     private static final int COMMAND_FLY_OUT = IRemoteObject.MIN_TRANSACTION_ID + 2;
     private static final int ERR_OK = 0;

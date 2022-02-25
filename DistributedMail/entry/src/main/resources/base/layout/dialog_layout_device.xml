@@ -10,15 +10,16 @@
         ohos:width="match_parent"
         ohos:background_element="$graphic:background_white_radius_10"
         ohos:bottom_margin="10vp"
-        ohos:left_margin="20vp"
+        ohos:start_margin="20vp"
         ohos:orientation="vertical"
-        ohos:right_margin="20vp">
+        ohos:end_margin="20vp">
 
         <Text
             ohos:height="50vp"
             ohos:width="match_parent"
-            ohos:left_padding="20vp"
-            ohos:text="迁移到其他设备"
+            ohos:start_padding="20vp"
+            ohos:end_padding="0vp"
+            ohos:text="$string:migration_to"
             ohos:text_alignment="vertical_center"
             ohos:text_color="#000000"
             ohos:text_size="16fp"/>
@@ -38,7 +39,7 @@
                 ohos:id="$+id:operate_no"
                 ohos:height="match_parent"
                 ohos:width="0vp"
-                ohos:text="取消"
+                ohos:text="$string:text_cancel"
                 ohos:text_alignment="center"
                 ohos:text_color="#1e90ff"
                 ohos:text_size="17fp"
@@ -54,7 +55,7 @@
                 ohos:id="$+id:operate_yes"
                 ohos:height="match_parent"
                 ohos:width="0vp"
-                ohos:text="确定"
+                ohos:text="$string:text_confirm"
                 ohos:text_alignment="center"
                 ohos:text_color="#1e90ff"
                 ohos:text_size="17fp"

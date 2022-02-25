@@ -51,9 +51,9 @@ public class SlidePopupWindow extends DependentLayout implements Component.Touch
     public static final int SLIDE_FROM_RIGHT = 3;
 
     private static final int COLOR_FULL = 255;
-    private Builder mBuilder;
-    private Component mRootView;
-    private AnimatorProperty animatorProperty;
+    private final Builder mBuilder;
+    private final Component mRootView;
+    private final AnimatorProperty animatorProperty;
     private int startX = 0;
     private int endX = 0;
     private int startY = 0;
@@ -241,7 +241,7 @@ public class SlidePopupWindow extends DependentLayout implements Component.Touch
     public static class Builder {
         private static final float ALPHA_DEFAULT = 0.5f;
         private static final int ANIM_DURATION = 300;
-        private Context mContext;
+        private final Context mContext;
         private float alpha;
         private int animDuration;
         private int direction;

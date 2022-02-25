@@ -45,7 +45,7 @@ public class DeviceSelectDialog extends CommonDialog {
     private static final int CORNER_RADIUS = 10;
     ListContainer mListContainer;
     List<DeviceData> mDeviceList = new ArrayList<>();
-    ListComponentAdapter listComponentAdapter;
+    ListComponentAdapter<DeviceData> listComponentAdapter;
     private DeviceInfo mCheckedDevice;
 
     /**
@@ -62,7 +62,7 @@ public class DeviceSelectDialog extends CommonDialog {
         void onYesClick(DeviceInfo deviceInfo);
     }
 
-    private Context mContext;
+    private final Context mContext;
     private OnclickListener mOnclickListener;
 
     /**
@@ -107,10 +107,7 @@ public class DeviceSelectDialog extends CommonDialog {
                 }
             });
         Text operateNo = (Text) rootView.findComponentById(ResourceTable.Id_operate_no);
-        operateNo.setClickedListener(
-            component -> {
-                hide();
-            });
+        operateNo.setClickedListener(component -> hide());
         setSize(MATCH_PARENT, MATCH_CONTENT);
         setAlignment(LayoutAlignment.BOTTOM);
         setCornerRadius(CORNER_RADIUS);

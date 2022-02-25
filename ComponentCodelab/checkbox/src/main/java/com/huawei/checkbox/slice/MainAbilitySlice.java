@@ -34,7 +34,7 @@ import java.util.Set;
  */
 public class MainAbilitySlice extends AbilitySlice {
     private Text answer;
-    private Set<String> selectedSet = new HashSet<>();
+    private final Set<String> selectedSet = new HashSet<>();
 
     @Override
     public void onStart(Intent intent) {

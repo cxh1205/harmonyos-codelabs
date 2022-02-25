@@ -36,7 +36,7 @@ public class RemoteController extends DependentLayout
         implements Component.ClickedListener, Component.TouchEventListener, Slider.ValueChangedListener {
     private static final int TOAST_DURATION = 3000;
     private static final float ALPHA = 0.7f;
-    private Context context;
+    private final Context context;
     private RemoteControllerListener remoteControllerListener;
     private Component componentParent;
     private boolean isShown = false;
@@ -90,10 +90,10 @@ public class RemoteController extends DependentLayout
         Button button = null;
         if (componentParent.findComponentById(res) instanceof Button) {
             button = (Button) componentParent.findComponentById(res);
+            button.setClickedListener(this);
+            button.setTouchEventListener(this);
+            button.setAlpha(ALPHA);
         }
-        button.setClickedListener(this);
-        button.setTouchEventListener(this);
-        button.setAlpha(ALPHA);
     }
 
     /**

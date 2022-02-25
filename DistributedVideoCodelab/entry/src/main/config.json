@@ -15,7 +15,9 @@
       "video_support"
     ],
     "deviceType": [
-      "default"
+      "phone",
+      "tv",
+      "tablet"
     ],
     "distro": {
       "deliveryWithInstall": true,
@@ -44,10 +46,7 @@
         "launchType": "standard"
       },
       {
-        "orientation": "unspecified",
-        "configChanges": [
-          "orientation"
-        ],
+        "orientation": "portrait",
         "name": ".PlayerAbility",
         "icon": "$media:icon",
         "description": "$string:videodetailabilityslice_description",

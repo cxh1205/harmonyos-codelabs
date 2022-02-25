@@ -12,7 +12,9 @@
     "package": "com.huawei.harmonyaudiodemo",
     "name": ".MyApplication",
     "deviceType": [
-      "default"
+      "phone",
+      "tablet",
+      "tv"
     ],
     "distro": {
       "deliveryWithInstall": true,
@@ -36,7 +38,7 @@
             ]
           }
         ],
-        "orientation": "unspecified",
+        "orientation": "portrait",
         "name": "com.huawei.harmonyaudiodemo.MainAbility",
         "icon": "$media:icon",
         "description": "$string:mainability_description",
